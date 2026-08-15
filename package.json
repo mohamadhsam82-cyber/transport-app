@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint",
@@ -11,7 +11,8 @@
     "db:validate": "prisma validate",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "export": "next build --webpack"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
