@@ -1,0 +1,125 @@
+// ============================================================
+// Production-ready Prisma schema
+// Transport / freight platform
+// ============================================================
+// Before migration:
+//   1) Set DATABASE_URL in .env
+//   2) Run: npx prisma format
+//   3) Run: npx prisma validate
+//   4) Create migration: npx prisma migrate dev --name init
+//
+// NOTE: This file preserves the uploaded domain model. Business
+// rules that require application-level validation (OTP expiry,
+// document verification workflow, trip state transitions, etc.)
+// should be enforced in the API/service layer.
+// ============================================================
+
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql"; url = env("DATABASE_URL") }
+
+enum UserRole { DRIVER SHIPPER ADMIN }
+enum UserStatus { PENDING ACTIVE SUSPENDED }
+enum VerificationStatus { PENDING VERIFIED REJECTED SUSPENDED }
+enum LoadStatus { OPEN REQUESTED ACCEPTED LOADING IN_TRANSIT DELIVERED CANCELLED }
+enum TripStatus { CREATED LOADING IN_TRANSIT DELIVERED CANCELLED }
+enum WaybillStatus { PENDING REQUESTED ISSUED CANCELLED }
+
+model User {
+  id String @id @default(cuid())
+  phone String @unique
+  name String?
+  role UserRole
+  status UserStatus @default(PENDING)
+  verified Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  driver Driver?
+  loads Load[] @relation("ShipperLoads")
+  requests LoadRequest[]
+  sentMessages Message[] @relation("SentMessages")
+}
+model Otp {
+  id String @id @default(cuid())
+  phone String @unique
+  code String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+model Driver {
+  id String @id @default(cuid())
+  userId String @unique
+  firstName String?
+  lastName String?
+  nationalId String?
+  plateNumber String?
+  truckType String?
+  capacity Float?
+  licenseNumber String?
+  smartCard String?
+  nationalCardUrl String?
+  licenseUrl String?
+  truckCardUrl String?
+  verificationStatus VerificationStatus @default(PENDING)
+  verificationNote String?
+  verifiedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields:[userId], references:[id])
+}
+model Load {
+  id String @id @default(cuid())
+  shipperId String
+  origin String
+  destination String
+  cargo String
+  weight Float
+  truckType String
+  price Int
+  status LoadStatus @default(OPEN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  shipper User @relation("ShipperLoads", fields:[shipperId], references:[id])
+  requests LoadRequest[]
+  trip Trip?
+  waybill Waybill?
+}
+model LoadRequest {
+  id String @id @default(cuid())
+  loadId String
+  driverId String
+  createdAt DateTime @default(now())
+  load Load @relation(fields:[loadId], references:[id])
+  driver User @relation(fields:[driverId], references:[id])
+  @@unique([loadId, driverId])
+}
+model Trip {
+  id String @id @default(cuid())
+  loadId String @unique
+  driverId String
+  shipperId String
+  status TripStatus @default(CREATED)
+  latitude Float?
+  longitude Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  load Load @relation(fields:[loadId], references:[id])
+}
+model Waybill {
+  id String @id @default(cuid())
+  loadId String @unique
+  waybillNumber String?
+  status WaybillStatus @default(PENDING)
+  documentUrl String?
+  issuedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  load Load @relation(fields:[loadId], references:[id])
+}
+model Message {
+  id String @id @default(cuid())
+  conversationId String
+  senderId String
+  text String
+  createdAt DateTime @default(now())
+  sender User @relation("SentMessages", fields:[senderId], references:[id])
+}
