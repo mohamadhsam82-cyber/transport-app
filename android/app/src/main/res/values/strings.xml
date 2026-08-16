@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">سامانه حمل و نقل باربری</string>
-    <string name="title_activity_main">سامانه حمل و نقل باربری</string>
-    <string name="package_name">com.transport.app</string>
-    <string name="custom_url_scheme">com.transport.app</string>
+    <string name="app_name">بارینو</string>
+    <string name="title_activity_main">بارینو</string>
+    <string name="package_name">com.barino.app</string>
+    <string name="custom_url_scheme">com.barino.app</string>
 </resources>
